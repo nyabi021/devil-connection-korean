@@ -1,4 +1,4 @@
-![Views](https://hits.seeyoufarm.com/cgi-bin/badge.svg?url=https://github.com/nyabi021/devil-connection-korean&count_bg=%232ea44f&title_bg=%23555555&icon=&title=views&edge_flat=true)
+![Views](https://hits.dwyl.com/nyabi021/devil-connection-korean.svg?style=flat-square&show=total)
 ![Downloads](https://img.shields.io/github/downloads/nyabi021/devil-connection-korean/total?style=flat-square&color=blue)
 # Devil Connection Korean (비공식 한글 번역)
 > **번역 안내**
