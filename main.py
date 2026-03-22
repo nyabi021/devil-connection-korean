@@ -104,9 +104,11 @@ class InstallWorker(QThread):
                 self.log_signal.emit("2. '그래도 열기' 버튼 클릭", "info")
 
             self.log_signal.emit("", "info")
-            self.log_signal.emit("메이플스토리 서체 사용 안내:", "info")
+            self.log_signal.emit("폰트 사용 안내:", "info")
             self.log_signal.emit("본 한글패치는 ㈜넥슨코리아의 메이플스토리 서체를 사용합니다.", "info")
             self.log_signal.emit("메이플스토리 서체의 지적 재산권은 ㈜넥슨코리아에 있습니다.", "info")
+            self.log_signal.emit("본 한글패치는 우아한형제들에서 제공한 배달의민족 폰트 꾸물럼체를 사용합니다.", "info")
+            self.log_signal.emit("배달의민족 폰트의 지적 재산권은 ㈜우아한형제들에 있습니다.", "info")
             self.log_signal.emit("=" * 60, "info")
 
             if platform.system() == "Darwin":
@@ -117,18 +119,22 @@ class InstallWorker(QThread):
                     "시스템 설정 > 개인정보 보호 및 보안\n"
                     "에서 '그래도 열기' 버튼을 클릭하세요.\n\n"
                     "────────────────────────\n"
-                    "메이플스토리 서체 사용 안내:\n"
+                    "폰트 사용 안내:\n"
                     "본 한글패치는 ㈜넥슨코리아의 메이플스토리 서체를 사용합니다.\n"
-                    "메이플스토리 서체의 지적 재산권은 ㈜넥슨코리아에 있습니다."
+                    "메이플스토리 서체의 지적 재산권은 ㈜넥슨코리아에 있습니다.\n"
+                    "본 한글패치는 우아한형제들에서 제공한 배달의민족 폰트 꾸물럼체를 사용합니다."
+                    "배달의민족 폰트의 지적 재산권은 ㈜우아한형제들에 있습니다."
                 )
             else:
                 complete_msg = (
                     "한글패치가 완료되었습니다!\n\n"
                     "Steam에서 게임을 실행하면 한글로 플레이하실 수 있습니다.\n\n"
                     "────────────────────────\n"
-                    "메이플스토리 서체 사용 안내:\n"
+                    "폰트 사용 안내:\n"
                     "본 한글패치는 ㈜넥슨코리아의 메이플스토리 서체를 사용합니다.\n"
-                    "메이플스토리 서체의 지적 재산권은 ㈜넥슨코리아에 있습니다."
+                    "메이플스토리 서체의 지적 재산권은 ㈜넥슨코리아에 있습니다.\n"
+                    "본 한글패치는 우아한형제들에서 제공한 배달의민족 폰트 꾸물럼체를 사용합니다."
+                    "배달의민족 폰트의 지적 재산권은 ㈜우아한형제들에 있습니다."
                 )
 
             self.finished_signal.emit(True, complete_msg)
@@ -279,9 +285,11 @@ class KoreanPatchInstaller(QMainWindow):
         self.add_log("'자동 감지' 버튼을 클릭하거나 게임 경로를 직접 선택해주세요.", "info")
         self.add_log("", "info")
         self.add_log("=" * 60, "info")
-        self.add_log("메이플스토리 서체 사용 안내", "info")
+        self.add_log("폰트 사용 안내", "info")
         self.add_log("본 프로그램은 ㈜넥슨코리아의 메이플스토리 서체를 사용합니다.", "info")
         self.add_log("메이플스토리 서체의 지적 재산권은 ㈜넥슨코리아에 있습니다.", "info")
+        self.add_log("본 프로그램은 우아한형제들에서 제공한 배달의민족 폰트 꾸물럼체를 사용합니다..", "info")
+        self.add_log("배달의민족 폰트의 지적 재산권은 ㈜우아한형제들에 있습니다.", "info")
         self.add_log("=" * 60, "info")
 
     def create_card(self):

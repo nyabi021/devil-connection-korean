@@ -1,5 +1,3 @@
-# -*- mode: python ; coding: utf-8 -*-
-
 block_cipher = None
 
 datas = [
@@ -10,7 +8,7 @@ datas = [
     ('data/image', 'data/image'),
     ('data/video', 'data/video'),
     ('tyrano', 'tyrano'),
-    ('data/bgimage', 'data/bgimage')
+    ('data/bgimage', 'data/bgimage'),
 ]
 
 a = Analysis(
@@ -69,6 +67,6 @@ coll = COLLECT(
 app = BUNDLE(
     coll,
     name='DevilConnection-Patcher-macOS-arm64.app',
-    icon=None, 
+    icon='icons/icon.icns', 
     bundle_identifier='com.nyabi.devilconnection.patcher',
 )

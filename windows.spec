@@ -1,5 +1,3 @@
-# -*- mode: python ; coding: utf-8 -*-
-
 block_cipher = None
 
 datas = [
@@ -56,5 +54,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=None,  
+    icon='icons/icon.ico',  
 )
