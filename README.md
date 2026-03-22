@@ -1,5 +1,5 @@
-![Views](https://hits.seeyoufarm.com/cgi-bin/badge.svg?url=https://github.com/nyabi021/REPO_NAME&count_bg=%232ea44f&title_bg=%23555555&icon=&title=views&edge_flat=true)
-![Downloads](https://img.shields.io/github/downloads/nyabi021/REPO_NAME/total?style=flat-square&color=blue)
+![Views](https://hits.seeyoufarm.com/cgi-bin/badge.svg?url=https://github.com/nyabi021/devil-connection-korean&count_bg=%232ea44f&title_bg=%23555555&icon=&title=views&edge_flat=true)
+![Downloads](https://img.shields.io/github/downloads/nyabi021/devil-connection-korean/total?style=flat-square&color=blue)
 # Devil Connection Korean (비공식 한글 번역)
 > **번역 안내**
 > - 본 번역은 **Claude AI**를 초벌 번역 작업에 활용했습니다.
