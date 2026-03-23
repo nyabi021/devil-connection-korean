@@ -14,8 +14,8 @@ from PyQt6.QtGui import QFont
 from asar import extract_archive, create_archive
 
 class InstallWorker(QThread):
-    log_signal = pyqtSignal(str, str)  
-    finished_signal = pyqtSignal(bool, str)  
+    log_signal = pyqtSignal(str, str)
+    finished_signal = pyqtSignal(bool, str)
 
     def __init__(self, game_path, base_path):
         super().__init__()
@@ -107,7 +107,7 @@ class InstallWorker(QThread):
             self.log_signal.emit("폰트 사용 안내:", "info")
             self.log_signal.emit("본 한글패치는 ㈜넥슨코리아의 메이플스토리 서체를 사용합니다.", "info")
             self.log_signal.emit("메이플스토리 서체의 지적 재산권은 ㈜넥슨코리아에 있습니다.", "info")
-            self.log_signal.emit("본 한글패치는 우아한형제들에서 제공한 배달의민족 폰트 꾸물럼체를 사용합니다.", "info")
+            self.log_signal.emit("본 한글패치는 우아한형제들에서 제공한 배달의민족 꾸불림체를 사용합니다.", "info")
             self.log_signal.emit("배달의민족 폰트의 지적 재산권은 ㈜우아한형제들에 있습니다.", "info")
             self.log_signal.emit("=" * 60, "info")
 
@@ -122,7 +122,7 @@ class InstallWorker(QThread):
                     "폰트 사용 안내:\n"
                     "본 한글패치는 ㈜넥슨코리아의 메이플스토리 서체를 사용합니다.\n"
                     "메이플스토리 서체의 지적 재산권은 ㈜넥슨코리아에 있습니다.\n"
-                    "본 한글패치는 우아한형제들에서 제공한 배달의민족 폰트 꾸물럼체를 사용합니다."
+                    "본 한글패치는 우아한형제들에서 제공한 배달의민족 꾸불림체를 사용합니다.\n"
                     "배달의민족 폰트의 지적 재산권은 ㈜우아한형제들에 있습니다."
                 )
             else:
@@ -133,7 +133,7 @@ class InstallWorker(QThread):
                     "폰트 사용 안내:\n"
                     "본 한글패치는 ㈜넥슨코리아의 메이플스토리 서체를 사용합니다.\n"
                     "메이플스토리 서체의 지적 재산권은 ㈜넥슨코리아에 있습니다.\n"
-                    "본 한글패치는 우아한형제들에서 제공한 배달의민족 폰트 꾸물럼체를 사용합니다."
+                    "본 한글패치는 우아한형제들에서 제공한 배달의민족 꾸불림체를 사용합니다.\n"
                     "배달의민족 폰트의 지적 재산권은 ㈜우아한형제들에 있습니다."
                 )
 
@@ -153,7 +153,7 @@ class InstallWorker(QThread):
             asar_path = game_path / "resources/app.asar"
         elif system == "Darwin":
             asar_path = game_path / "DevilConnection.app/Contents/Resources/app.asar"
-        else:  
+        else:
             asar_path = game_path / "resources/app.asar"
 
         return asar_path if asar_path.exists() else None
@@ -162,7 +162,7 @@ class InstallWorker(QThread):
 class KoreanPatchInstaller(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.base_path = Path(sys._MEIPASS)
+        self.base_path = Path(getattr(sys, '_MEIPASS', Path(__file__).parent))
         self.worker = None
         self.init_ui()
 
@@ -192,7 +192,7 @@ class KoreanPatchInstaller(QMainWindow):
         subtitle_label.setStyleSheet("color: #718096;")
         title_layout.addWidget(subtitle_label)
 
-        credit_label = QLabel("이미지 번역: 토니, 체퓨 | 영상 번역: 민버드")
+        credit_label = QLabel("메인 시나리오 번역 검수: Ewan | 이미지 번역: 토니, 체퓨 | 영상 번역: 민버드")
         credit_label.setFont(QFont(get_system_font(), 10))
         credit_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         credit_label.setStyleSheet("color: #4a5568; margin-top: 2px;")
@@ -280,7 +280,7 @@ class KoreanPatchInstaller(QMainWindow):
 
         self.add_log("でびるコネクショん 한글패치 프로그램을 시작합니다.", "info")
         self.add_log("", "info")
-        self.add_log("이미지 번역에 '토니', '체퓨'님, 영상 번역에 '민버드'님께 진심으로 감사드립니다.", "success")
+        self.add_log("메인 시나리오 번역 검수 'Ewan'님, 이미지 번역 '토니', '체퓨'님, 영상 번역 '민버드'님께 진심으로 감사드립니다.", "success")
         self.add_log("", "info")
         self.add_log("'자동 감지' 버튼을 클릭하거나 게임 경로를 직접 선택해주세요.", "info")
         self.add_log("", "info")
@@ -288,7 +288,7 @@ class KoreanPatchInstaller(QMainWindow):
         self.add_log("폰트 사용 안내", "info")
         self.add_log("본 프로그램은 ㈜넥슨코리아의 메이플스토리 서체를 사용합니다.", "info")
         self.add_log("메이플스토리 서체의 지적 재산권은 ㈜넥슨코리아에 있습니다.", "info")
-        self.add_log("본 프로그램은 우아한형제들에서 제공한 배달의민족 폰트 꾸물럼체를 사용합니다..", "info")
+        self.add_log("본 프로그램은 우아한형제들에서 제공한 배달의민족 꾸불림체를 사용합니다.", "info")
         self.add_log("배달의민족 폰트의 지적 재산권은 ㈜우아한형제들에 있습니다.", "info")
         self.add_log("=" * 60, "info")
 
@@ -431,7 +431,7 @@ class KoreanPatchInstaller(QMainWindow):
             if game_path.exists():
                 possible_paths.append(game_path)
 
-        else:  
+        else:
             steam_paths = [
                 Path.home() / ".local/share/Steam",
                 Path.home() / ".steam/steam",
@@ -482,6 +482,22 @@ class KoreanPatchInstaller(QMainWindow):
             QMessageBox.information(self, "설치 완료", message)
         else:
             QMessageBox.critical(self, "설치 오류", message)
+
+    def closeEvent(self, event):
+        if self.worker and self.worker.isRunning():
+            reply = QMessageBox.question(
+                self, "설치 중",
+                "설치가 진행 중입니다. 종료하시겠습니까?\n(파일이 손상될 수 있습니다)",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            )
+            if reply == QMessageBox.StandardButton.Yes:
+                self.worker.terminate()
+                self.worker.wait()
+                event.accept()
+            else:
+                event.ignore()
+        else:
+            event.accept()
 
 
 def get_system_font():
