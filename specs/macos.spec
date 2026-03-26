@@ -72,6 +72,6 @@ coll = COLLECT(
 app = BUNDLE(
     coll,
     name='DevilConnection-Patcher-macOS-arm64.app',
-    icon='icons/icon.icns', 
+    icon=os.path.join(root, 'icons', 'icon.icns'),
     bundle_identifier='com.nyabi.devilconnection.patcher',
 )

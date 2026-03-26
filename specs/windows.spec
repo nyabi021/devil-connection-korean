@@ -59,5 +59,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='icons/icon.ico',  
+    icon=os.path.join(root, 'icons', 'icon.ico'),
 )
