@@ -1,4 +1,3 @@
-import os
 import sys
 from pathlib import Path
 
@@ -27,7 +26,7 @@ from config import (
     WINDOW_HEIGHT,
     WINDOW_WIDTH,
 )
-from installer import InstallWorker
+from installer import InstallWorker, find_app_asar
 from updater import (
     UpdateChecker,
     UpdateDownloader,
@@ -38,6 +37,23 @@ from utils import get_monospace_font, get_system_font
 
 import platform
 
+_SKIP_VERSION_FILE = Path.home() / ".devil-connection-patcher-skip"
+
+
+def _load_skipped_version() -> str:
+    try:
+        return _SKIP_VERSION_FILE.read_text(encoding="utf-8").strip()
+    except Exception:
+        return ""
+
+
+def _save_skipped_version(version: str) -> None:
+    try:
+        _SKIP_VERSION_FILE.write_text(version, encoding="utf-8")
+    except Exception:
+        pass
+
+
 class KoreanPatchInstaller(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -45,12 +61,14 @@ class KoreanPatchInstaller(QMainWindow):
         self.update_checker: UpdateChecker | None = None
         self.update_downloader: UpdateDownloader | None = None
         self._pending_download_url: str | None = None
+        self._pending_latest_version: str | None = None
         self._init_ui()
         self._start_update_check()
 
     def _init_ui(self):
         self.setWindowTitle(APP_TITLE)
-        self.setFixedSize(WINDOW_WIDTH, WINDOW_HEIGHT)
+        self.setMinimumSize(WINDOW_WIDTH, WINDOW_HEIGHT)
+        self.resize(WINDOW_WIDTH, WINDOW_HEIGHT)
 
         central = QWidget()
         self.setCentralWidget(central)
@@ -66,6 +84,7 @@ class KoreanPatchInstaller(QMainWindow):
         root.addWidget(self._build_path_card())
         root.addWidget(self._build_progress_card())
         root.addWidget(self._build_log_card(), stretch=1)
+        root.addWidget(self._build_footer())
 
         self._apply_styles()
         self._print_welcome()
@@ -118,12 +137,12 @@ class KoreanPatchInstaller(QMainWindow):
         self.update_btn.clicked.connect(self._start_download)
         top.addWidget(self.update_btn)
 
-        self.dismiss_btn = QPushButton("나중에")
+        self.dismiss_btn = QPushButton("이 버전 건너뛰기")
         self.dismiss_btn.setObjectName("dismiss_btn")
         self.dismiss_btn.setFont(QFont(get_system_font(), 10))
         self.dismiss_btn.setMinimumHeight(34)
         self.dismiss_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.dismiss_btn.clicked.connect(lambda: self.update_frame.setVisible(False))
+        self.dismiss_btn.clicked.connect(self._dismiss_update)
         top.addWidget(self.dismiss_btn)
 
         outer.addLayout(top)
@@ -172,6 +191,7 @@ class KoreanPatchInstaller(QMainWindow):
 
         buttons.addWidget(self.auto_btn)
         buttons.addWidget(self.browse_btn)
+        buttons.addStretch()
         buttons.addWidget(self.install_btn)
 
         layout.addLayout(buttons)
@@ -179,19 +199,20 @@ class KoreanPatchInstaller(QMainWindow):
         return card
 
     def _build_progress_card(self) -> QFrame:
-        card = self._card()
+        self.progress_card = self._card()
         layout = QVBoxLayout()
         layout.setContentsMargins(20, 15, 20, 15)
 
         self.progress_bar = QProgressBar()
         self.progress_bar.setMinimumHeight(8)
         self.progress_bar.setTextVisible(False)
-        self.progress_bar.setRange(0, 0)
-        self.progress_bar.setVisible(False)
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setValue(0)
         layout.addWidget(self.progress_bar)
 
-        card.setLayout(layout)
-        return card
+        self.progress_card.setLayout(layout)
+        self.progress_card.setVisible(False)
+        return self.progress_card
 
     def _build_log_card(self) -> QFrame:
         card = self._card()
@@ -211,6 +232,15 @@ class KoreanPatchInstaller(QMainWindow):
 
         card.setLayout(layout)
         return card
+
+    def _build_footer(self) -> QLabel:
+        footer = QLabel(
+            "본 프로그램은 ㈜넥슨코리아 메이플스토리 서체 및 ㈜우아한형제들 배달의민족 꾸불림체를 사용합니다."
+        )
+        footer.setObjectName("footer_label")
+        footer.setFont(QFont(get_system_font(), 8))
+        footer.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        return footer
 
     def _card(self) -> QFrame:
         card = QFrame()
@@ -240,6 +270,7 @@ class KoreanPatchInstaller(QMainWindow):
             QLabel { color: #2d3748; background: transparent; border: none; }
             QLabel#update_label { color: #744210; }
             QLabel#update_status_label { color: #744210; }
+            QLabel#footer_label { color: #a0aec0; }
             QLineEdit {
                 padding: 10px;
                 border: 1px solid #e2e8f0;
@@ -260,10 +291,11 @@ class KoreanPatchInstaller(QMainWindow):
             QPushButton:disabled { background-color: #f7fafc; color: #a0aec0; }
             QPushButton#install_btn {
                 background-color: #48bb78; color: white; border: none;
+                min-width: 160px;
             }
             QPushButton#install_btn:hover { background-color: #38a169; }
             QPushButton#install_btn:pressed { background-color: #2f855a; }
-            QPushButton#install_btn:disabled { background-color: #c6f6d5; }
+            QPushButton#install_btn:disabled { background-color: #c6f6d5; color: #68d391; }
             QPushButton#update_btn {
                 background-color: #d69e2e; color: white; border: none; padding: 6px 16px;
             }
@@ -295,6 +327,20 @@ class KoreanPatchInstaller(QMainWindow):
             }
         """)
 
+    def _set_path_valid(self, valid: bool | None):
+        if valid is None:
+            self.path_input.setStyleSheet("")
+        elif valid:
+            self.path_input.setStyleSheet(
+                "border: 2px solid #48bb78; border-radius: 6px;"
+                "padding: 10px; background-color: white; color: #2d3748;"
+            )
+        else:
+            self.path_input.setStyleSheet(
+                "border: 2px solid #f6ad55; border-radius: 6px;"
+                "padding: 10px; background-color: white; color: #2d3748;"
+            )
+
     def _start_update_check(self):
         self.update_checker = UpdateChecker()
         self.update_checker.update_available.connect(self._on_update_available)
@@ -305,12 +351,21 @@ class KoreanPatchInstaller(QMainWindow):
         self.update_checker.start()
 
     def _on_update_available(self, latest: str, url: str):
+        if latest == _load_skipped_version():
+            self._log(f"v{latest} 업데이트가 있지만 건너뛰기로 설정되어 있습니다.", "info")
+            return
         self._pending_download_url = url
+        self._pending_latest_version = latest
         self.update_label.setText(
             f"새 버전 <b>v{latest}</b>이 출시되었습니다!  (현재: v{VERSION})"
         )
         self.update_frame.setVisible(True)
         self._log(f"새 버전 v{latest}이 출시되었습니다! 업데이트 배너를 확인해주세요.", "warning")
+
+    def _dismiss_update(self):
+        if self._pending_latest_version:
+            _save_skipped_version(self._pending_latest_version)
+        self.update_frame.setVisible(False)
 
     def _start_download(self):
         if not self._pending_download_url:
@@ -382,16 +437,24 @@ class KoreanPatchInstaller(QMainWindow):
         )
         if path:
             self.path_input.setText(path)
-            self._log(f"게임 경로 선택: {path}", "success")
+            valid = find_app_asar(Path(path)) is not None
+            self._set_path_valid(valid)
+            if valid:
+                self._log(f"게임 경로 선택: {path}", "success")
+            else:
+                self._log(f"게임 경로 선택: {path}", "info")
+                self._log("app.asar 파일을 찾을 수 없습니다. 올바른 게임 폴더인지 확인하세요.", "warning")
 
     def _auto_detect(self):
         self._log("게임 경로를 자동으로 검색 중...", "info")
         found = self._search_game_path()
         if found:
             self.path_input.setText(str(found))
+            self._set_path_valid(True)
             self._log("게임을 찾았습니다!", "success")
             self._log(f"경로: {found}", "info")
         else:
+            self._set_path_valid(None)
             self._log("게임 경로를 자동으로 찾지 못했습니다.", "warning")
             self._log("'찾아보기' 버튼으로 직접 선택해주세요.", "info")
             QMessageBox.warning(
@@ -436,21 +499,34 @@ class KoreanPatchInstaller(QMainWindow):
             QMessageBox.warning(self, "경로 없음", "게임 경로를 먼저 선택해주세요.")
             return
 
+        if find_app_asar(Path(game_path)) is None:
+            self._set_path_valid(False)
+            QMessageBox.warning(
+                self,
+                "잘못된 게임 경로",
+                "선택한 폴더에서 게임 파일(app.asar)을 찾을 수 없습니다.\n\n"
+                "올바른 게임 설치 폴더를 선택해주세요.",
+            )
+            return
+
         for btn in (self.install_btn, self.auto_btn, self.browse_btn):
             btn.setEnabled(False)
-        self.progress_bar.setVisible(True)
+        self.progress_bar.setValue(0)
+        self.progress_card.setVisible(True)
 
         self.worker = InstallWorker(game_path, BASE_PATH)
         self.worker.log_signal.connect(self._log)
+        self.worker.progress_signal.connect(self.progress_bar.setValue)
         self.worker.finished_signal.connect(self._on_install_finished)
         self.worker.start()
 
     def _on_install_finished(self, success: bool, message: str):
         for btn in (self.install_btn, self.auto_btn, self.browse_btn):
             btn.setEnabled(True)
-        self.progress_bar.setVisible(False)
+        self.progress_card.setVisible(False)
 
         if success:
+            self._set_path_valid(None)
             QMessageBox.information(self, "설치 완료", message)
         else:
             QMessageBox.critical(self, "설치 오류", message)
@@ -478,25 +554,17 @@ class KoreanPatchInstaller(QMainWindow):
         )
         self._log("", "info")
         self._log("'자동 감지' 버튼을 클릭하거나 게임 경로를 직접 선택해주세요.", "info")
-        self._log("", "info")
-        self._log("=" * 60, "info")
-        self._log("폰트 사용 안내", "info")
-        self._log("본 프로그램은 ㈜넥슨코리아의 메이플스토리 서체를 사용합니다.", "info")
-        self._log("메이플스토리 서체의 지적 재산권은 ㈜넥슨코리아에 있습니다.", "info")
-        self._log("본 프로그램은 우아한형제들에서 제공한 배달의민족 꾸불림체를 사용합니다.", "info")
-        self._log("배달의민족 폰트의 지적 재산권은 ㈜우아한형제들에 있습니다.", "info")
-        self._log("=" * 60, "info")
 
     def closeEvent(self, event):
         if self.worker and self.worker.isRunning():
             reply = QMessageBox.question(
                 self,
                 "설치 중",
-                "설치가 진행 중입니다. 종료하시겠습니까?\n(파일이 손상될 수 있습니다)",
+                "설치가 진행 중입니다. 종료하시겠습니까?\n(취소 시 원본 파일이 자동으로 복원됩니다)",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             )
             if reply == QMessageBox.StandardButton.Yes:
-                self.worker.terminate()
+                self.worker.cancel()
                 self.worker.wait()
                 event.accept()
             else:
