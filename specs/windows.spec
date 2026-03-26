@@ -1,20 +1,24 @@
+import os
 block_cipher = None
 
+root = os.path.abspath(os.path.join(SPECPATH, '..'))
+src = os.path.join(root, 'src')
+
 datas = [
-    ('src/config.json', '.'),
-    ('data/scenario', 'data/scenario'),
-    ('data/others', 'data/others'),
-    ('data/system', 'data/system'),
-    ('data/fgimage', 'data/fgimage'),
-    ('data/image', 'data/image'),
-    ('data/video', 'data/video'),
-    ('tyrano', 'tyrano'),
-    ('data/bgimage', 'data/bgimage'),
+    (os.path.join(src, 'config.json'), '.'),
+    (os.path.join(root, 'data/scenario'), 'data/scenario'),
+    (os.path.join(root, 'data/others'), 'data/others'),
+    (os.path.join(root, 'data/system'), 'data/system'),
+    (os.path.join(root, 'data/fgimage'), 'data/fgimage'),
+    (os.path.join(root, 'data/image'), 'data/image'),
+    (os.path.join(root, 'data/video'), 'data/video'),
+    (os.path.join(root, 'data/bgimage'), 'data/bgimage'),
+    (os.path.join(root, 'tyrano'), 'tyrano'),
 ]
 
 a = Analysis(
-    ['src/main.py'],
-    pathex=['src'],
+    [os.path.join(src, 'main.py')],
+    pathex=[src],
     binaries=[],
     datas=datas,
     hiddenimports=[
