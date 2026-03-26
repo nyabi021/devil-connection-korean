@@ -1,6 +1,7 @@
 block_cipher = None
 
 datas = [
+    ('config.json', '.'),
     ('data/scenario', 'data/scenario'),
     ('data/others', 'data/others'),
     ('data/system', 'data/system'),
