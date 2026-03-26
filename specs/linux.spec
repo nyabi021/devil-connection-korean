@@ -1,7 +1,7 @@
 block_cipher = None
 
 datas = [
-    ('config.json', '.'),
+    ('src/config.json', '.'),
     ('data/scenario', 'data/scenario'),
     ('data/others', 'data/others'),
     ('data/system', 'data/system'),
@@ -13,8 +13,8 @@ datas = [
 ]
 
 a = Analysis(
-    ['main.py'],
-    pathex=[],
+    ['src/main.py'],
+    pathex=['src'],
     binaries=[],
     datas=datas,
     hiddenimports=[
@@ -38,36 +38,21 @@ pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 exe = EXE(
     pyz,
     a.scripts,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
     [],
-    exclude_binaries=True, 
-    name='DevilConnection-Patcher-macOS-arm64',
+    name='DevilConnection-Patcher-Linux-x86_64',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
+    upx_exclude=[],
+    runtime_tmpdir=None,
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=None,
-)
-
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-    strip=False,
-    upx=True,
-    upx_exclude=[],
-    name='DevilConnection-Patcher-macOS-arm64',
-)
-
-app = BUNDLE(
-    coll,
-    name='DevilConnection-Patcher-macOS-arm64.app',
-    icon='icons/icon.icns', 
-    bundle_identifier='com.nyabi.devilconnection.patcher',
 )

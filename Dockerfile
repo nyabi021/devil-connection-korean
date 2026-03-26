@@ -21,7 +21,7 @@ RUN wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous
 
 COPY . .
 
-RUN pyinstaller linux.spec && \
+RUN pyinstaller specs/linux.spec && \
     mkdir -p AppDir/usr/bin && \
     mkdir -p AppDir/usr/share/applications && \
     mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps && \

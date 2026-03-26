@@ -1,7 +1,7 @@
 block_cipher = None
 
 datas = [
-    ('config.json', '.'),
+    ('src/config.json', '.'),
     ('data/scenario', 'data/scenario'),
     ('data/others', 'data/others'),
     ('data/system', 'data/system'),
@@ -13,8 +13,8 @@ datas = [
 ]
 
 a = Analysis(
-    ['main.py'],
-    pathex=[],
+    ['src/main.py'],
+    pathex=['src'],
     binaries=[],
     datas=datas,
     hiddenimports=[
@@ -42,17 +42,18 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='DevilConnection-Patcher-Linux-x86_64',
+    name='DevilConnection-Patcher-Windows-x64',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,
+    console=False,  
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon='icons/icon.ico',  
 )
