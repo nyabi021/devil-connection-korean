@@ -1,6 +1,7 @@
 # Devil Connection Korean (비공식 한글 번역)
 ![Release](https://img.shields.io/github/v/release/nyabi021/devil-connection-korean?style=flat&color=blue)
 ![Last Commit](https://img.shields.io/github/last-commit/nyabi021/devil-connection-korean?style=flat)
+![Downloads](https://img.shields.io/github/downloads/nyabi021/devil-connection-korean/total?style=flat&color=34d058)
 ![License](https://img.shields.io/badge/license-MIT%20%2F%20CC%20BY--NC--SA-orange?style=flat)
 > **번역 안내**
 > - 본 번역은 **Claude AI**를 초벌 번역 작업에 활용했습니다.
