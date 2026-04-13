@@ -1,7 +1,7 @@
 # Devil Connection Korean (비공식 한글 번역)
-![Release](https://img.shields.io/github/v/release/nyabi03/devil-connection-korean?style=flat&color=6366f1)
-![Downloads](https://img.shields.io/github/downloads/nyabi03/devil-connection-korean/total?style=flat&color=10b981)
-![Last Commit](https://img.shields.io/github/last-commit/nyabi03/devil-connection-korean?style=flat&color=f59e0b)
+![Release](https://img.shields.io/github/v/release/n4yabi12/devil-connection-korean?style=flat&color=6366f1)
+![Downloads](https://img.shields.io/github/downloads/n4yabi12/devil-connection-korean/total?style=flat&color=10b981)
+![Last Commit](https://img.shields.io/github/last-commit/n4yabi12/devil-connection-korean?style=flat&color=f59e0b)
 ![License](https://img.shields.io/badge/patcher%20code-MIT-8b5cf6?style=flat)
 > **번역 안내**
 > - 본 번역 패치는 **ChaoGames로부터 배포 허가**를 받았습니다.
