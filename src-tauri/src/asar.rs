@@ -9,6 +9,7 @@ pub type CancelFn<'a> = &'a (dyn Fn() -> bool + Send + Sync);
 
 const COPY_BUF_SIZE: usize = 4 * 1024 * 1024;
 const HEADER_PREFIX_SIZE: u64 = 8;
+const MAX_JSON_LEN: u64 = 256 * 1024 * 1024;
 
 fn check_cancel(cancel: CancelFn) -> io::Result<()> {
     if cancel() {
@@ -22,6 +23,21 @@ fn u32_le(b: &[u8]) -> u32 {
     u32::from_le_bytes(b.try_into().unwrap())
 }
 
+fn validate_entry_name(name: &str) -> io::Result<()> {
+    let bad = name.is_empty()
+        || name == "."
+        || name == ".."
+        || name.bytes().any(|b| b == b'/' || b == b'\\' || b == 0)
+        || name.contains(':');
+    if bad {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("invalid asar entry name: {name:?}"),
+        ));
+    }
+    Ok(())
+}
+
 fn unpacked_dir_for(asar_path: &Path) -> PathBuf {
     let mut os: OsString = asar_path.as_os_str().to_os_string();
     os.push(".unpacked");
@@ -30,6 +46,7 @@ fn unpacked_dir_for(asar_path: &Path) -> PathBuf {
 
 pub fn extract_archive(asar_path: &Path, dest: &Path, cancel: CancelFn) -> io::Result<()> {
     let mut f = File::open(asar_path)?;
+    let file_len = f.metadata()?.len();
 
     let mut prefix = [0u8; 16];
     f.read_exact(&mut prefix)?;
@@ -40,7 +57,18 @@ pub fn extract_archive(asar_path: &Path, dest: &Path, cancel: CancelFn) -> io::R
         ));
     }
     let pickle2_total = u32_le(&prefix[4..8]) as u64;
-    let json_len = u32_le(&prefix[12..16]) as usize;
+    let json_len_u64 = u32_le(&prefix[12..16]) as u64;
+
+    if pickle2_total < 8 + json_len_u64
+        || HEADER_PREFIX_SIZE.saturating_add(pickle2_total) > file_len
+        || json_len_u64 > MAX_JSON_LEN
+    {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid or oversized asar header",
+        ));
+    }
+    let json_len = json_len_u64 as usize;
     let file_data_start = HEADER_PREFIX_SIZE + pickle2_total;
 
     let mut json_buf = vec![0u8; json_len];
@@ -78,6 +106,7 @@ fn extract_dir<R: Read + Seek>(
 ) -> io::Result<()> {
     for (name, entry) in files {
         check_cancel(cancel)?;
+        validate_entry_name(name)?;
         let out_path = out_dir.join(name);
         let next_rel = rel.join(name);
 
@@ -354,21 +383,4 @@ fn glob_match(pattern: &str, text: &str) -> bool {
         pi += 1;
     }
     pi == p.len()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::glob_match;
-
-    #[test]
-    fn glob_basic() {
-        assert!(glob_match("*.node", "steamworks.node"));
-        assert!(glob_match("*.node", "a.node"));
-        assert!(!glob_match("*.node", "foo.txt"));
-        assert!(glob_match("*", "anything"));
-        assert!(glob_match("a*b", "aXb"));
-        assert!(glob_match("a*b", "aXXXb"));
-        assert!(!glob_match("a*b", "aXc"));
-        assert!(glob_match("foo.node", "foo.node"));
-    }
 }

@@ -2,18 +2,29 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::thread;
 
-use crossbeam_channel::Sender;
 use include_dir::{Dir, DirEntry, include_dir};
+use serde::Serialize;
+use tauri::ipc::Channel;
 
 use crate::asar;
-use crate::config::PATCH_DIRS;
 use crate::steam::find_app_asar;
 
-static PATCHES: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/patches");
+static PATCHES: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/../patches");
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub const PATCH_DIRS: &[&str] = &[
+    "data/scenario",
+    "data/others",
+    "data/system",
+    "data/fgimage",
+    "data/image",
+    "data/video",
+    "data/bgimage",
+    "tyrano",
+];
+
+#[derive(Clone, Copy, Debug, Serialize)]
+#[serde(rename_all = "lowercase")]
 pub enum LogLevel {
     Info,
     Success,
@@ -21,48 +32,27 @@ pub enum LogLevel {
     Error,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase", tag = "kind", content = "data")]
 pub enum InstallEvent {
-    Log(LogLevel, String),
-    Progress(u32),
+    Log { level: LogLevel, message: String },
+    Progress { value: u32 },
     Finished { success: bool, message: String },
 }
 
-pub struct InstallHandle {
+pub fn run_install(
+    game_path: PathBuf,
+    channel: Channel<InstallEvent>,
     cancel: Arc<AtomicBool>,
-    join: Option<thread::JoinHandle<()>>,
-}
-
-impl InstallHandle {
-    pub fn cancel(&self) {
-        self.cancel.store(true, Ordering::SeqCst);
-    }
-
-    pub fn join(&mut self) {
-        if let Some(h) = self.join.take() {
-            let _ = h.join();
-        }
-    }
-}
-
-pub fn spawn(game_path: PathBuf, tx: Sender<InstallEvent>) -> InstallHandle {
-    let cancel = Arc::new(AtomicBool::new(false));
-    let cancel_thread = Arc::clone(&cancel);
-    let join = thread::spawn(move || {
-        run(game_path, tx, cancel_thread);
-    });
-    InstallHandle {
-        cancel,
-        join: Some(join),
-    }
-}
-
-fn run(game_path: PathBuf, tx: Sender<InstallEvent>, cancel: Arc<AtomicBool>) {
+) {
     let log = |level: LogLevel, msg: &str| {
-        let _ = tx.send(InstallEvent::Log(level, msg.to_string()));
+        let _ = channel.send(InstallEvent::Log {
+            level,
+            message: msg.to_string(),
+        });
     };
     let progress = |p: u32| {
-        let _ = tx.send(InstallEvent::Progress(p));
+        let _ = channel.send(InstallEvent::Progress { value: p });
     };
 
     let mut state = RestoreState::default();
@@ -73,7 +63,7 @@ fn run(game_path: PathBuf, tx: Sender<InstallEvent>, cancel: Arc<AtomicBool>) {
 
     match run_inner(&game_path, &log, &progress, &*cancel_fn, &mut state) {
         Ok(msg) => {
-            let _ = tx.send(InstallEvent::Finished {
+            let _ = channel.send(InstallEvent::Finished {
                 success: true,
                 message: msg,
             });
@@ -81,11 +71,20 @@ fn run(game_path: PathBuf, tx: Sender<InstallEvent>, cancel: Arc<AtomicBool>) {
         Err(err) => {
             let cancelled = cancel.load(Ordering::SeqCst);
             if cancelled {
-                log(LogLevel::Warning, "설치가 취소되었습니다. 원본 파일을 복원 중...");
+                log(
+                    LogLevel::Warning,
+                    "설치가 취소되었습니다. 원본 파일을 복원 중...",
+                );
             } else {
-                log(LogLevel::Error, "============================================================");
+                log(
+                    LogLevel::Error,
+                    "============================================================",
+                );
                 log(LogLevel::Error, &format!("설치 중 오류 발생: {}", err));
-                log(LogLevel::Error, "============================================================");
+                log(
+                    LogLevel::Error,
+                    "============================================================",
+                );
             }
             state.restore(&log);
             let msg = if cancelled {
@@ -93,7 +92,7 @@ fn run(game_path: PathBuf, tx: Sender<InstallEvent>, cancel: Arc<AtomicBool>) {
             } else {
                 format!("설치 중 오류가 발생했습니다:\n\n{}", err)
             };
-            let _ = tx.send(InstallEvent::Finished {
+            let _ = channel.send(InstallEvent::Finished {
                 success: false,
                 message: msg,
             });
@@ -133,30 +132,40 @@ fn run_inner(
     cancel: &(dyn Fn() -> bool + Send + Sync),
     state: &mut RestoreState,
 ) -> Result<String, String> {
-    log(LogLevel::Info, "============================================================");
+    log(
+        LogLevel::Info,
+        "============================================================",
+    );
     log(LogLevel::Info, "설치를 시작합니다...");
     log(LogLevel::Info, "1단계: app.asar 파일 찾기...");
 
     let asar_path = find_app_asar(game_path)
         .ok_or_else(|| "app.asar 파일을 찾을 수 없습니다. 게임 경로를 확인해주세요.".to_string())?;
     state.asar_path = Some(asar_path.clone());
-    log(LogLevel::Success, &format!("app.asar 파일 위치: {}", asar_path.display()));
+    log(
+        LogLevel::Success,
+        &format!("app.asar 파일 위치: {}", asar_path.display()),
+    );
     progress(5);
     check_cancel(cancel)?;
 
     let resources_dir = asar_path.parent().ok_or("invalid asar path")?.to_path_buf();
     let app_folder = resources_dir.join("app");
     let backup_path = resources_dir.join("app.asar.backup");
+    let backup_tmp_path = resources_dir.join("app.asar.backup.tmp");
     state.app_folder = Some(app_folder.clone());
     state.backup_path = Some(backup_path.clone());
 
     log(LogLevel::Info, "2단계: 원본 파일 백업...");
-    if backup_path.exists() {
-        log(LogLevel::Info, "백업 파일이 이미 존재합니다. 기존 백업을 유지합니다.");
-    } else {
-        fs::copy(&asar_path, &backup_path).map_err(|e| format!("백업 실패: {}", e))?;
-        log(LogLevel::Success, "백업 완료");
+    if backup_tmp_path.exists() {
+        fs::remove_file(&backup_tmp_path).map_err(|e| format!("임시 백업 삭제 실패: {}", e))?;
     }
+    fs::copy(&asar_path, &backup_tmp_path).map_err(|e| format!("백업 실패: {}", e))?;
+    if backup_path.exists() {
+        fs::remove_file(&backup_path).map_err(|e| format!("기존 백업 삭제 실패: {}", e))?;
+    }
+    fs::rename(&backup_tmp_path, &backup_path).map_err(|e| format!("백업 교체 실패: {}", e))?;
+    log(LogLevel::Success, "백업 완료");
     progress(15);
     check_cancel(cancel)?;
 
@@ -169,7 +178,10 @@ fn run_inner(
     progress(20);
     check_cancel(cancel)?;
 
-    log(LogLevel::Info, "4단계: app.asar 압축 해제 중... (시간이 걸릴 수 있습니다)");
+    log(
+        LogLevel::Info,
+        "4단계: app.asar 압축 해제 중... (시간이 걸릴 수 있습니다)",
+    );
     asar::extract_archive(&asar_path, &app_folder, &cancel)
         .map_err(|e| format!("압축 해제 실패: {}", e))?;
     log(LogLevel::Success, "압축 해제 완료");
@@ -197,7 +209,10 @@ fn run_inner(
     }
     check_cancel(cancel)?;
 
-    log(LogLevel::Info, "6단계: app 폴더를 app.asar로 재압축 중... (시간이 걸릴 수 있습니다)");
+    log(
+        LogLevel::Info,
+        "6단계: app 폴더를 app.asar로 재압축 중... (시간이 걸릴 수 있습니다)",
+    );
     if asar_path.exists() && asar_path.is_file() {
         fs::remove_file(&asar_path).map_err(|e| format!("원본 삭제 실패: {}", e))?;
         log(LogLevel::Info, "원본 app.asar 파일을 삭제했습니다.");
@@ -215,20 +230,38 @@ fn run_inner(
     }
     progress(100);
 
-    log(LogLevel::Info, "============================================================");
+    log(
+        LogLevel::Info,
+        "============================================================",
+    );
     log(LogLevel::Success, "한글패치가 완료되었습니다!");
-    log(LogLevel::Success, "Steam에서 게임을 실행하면 한글로 플레이하실 수 있습니다.");
+    log(
+        LogLevel::Success,
+        "Steam에서 게임을 실행하면 한글로 플레이하실 수 있습니다.",
+    );
 
     if cfg!(target_os = "macos") {
         log(LogLevel::Info, "");
         log(LogLevel::Warning, "macOS 사용자 안내:");
-        log(LogLevel::Info, "게임 실행 시 '손상되었습니다' 경고가 나타날 수 있습니다.");
-        log(LogLevel::Info, "이는 정상적인 macOS 보안 경고이며, 다음과 같이 해결하세요:");
-        log(LogLevel::Info, "1. 시스템 설정 > 개인정보 보호 및 보안 열기");
+        log(
+            LogLevel::Info,
+            "게임 실행 시 '손상되었습니다' 경고가 나타날 수 있습니다.",
+        );
+        log(
+            LogLevel::Info,
+            "이는 정상적인 macOS 보안 경고이며, 다음과 같이 해결하세요:",
+        );
+        log(
+            LogLevel::Info,
+            "1. 시스템 설정 > 개인정보 보호 및 보안 열기",
+        );
         log(LogLevel::Info, "2. '그래도 열기' 버튼 클릭");
     }
 
-    log(LogLevel::Info, "============================================================");
+    log(
+        LogLevel::Info,
+        "============================================================",
+    );
 
     state.asar_path = None;
     state.backup_path = None;
