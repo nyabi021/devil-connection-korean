@@ -594,9 +594,11 @@
     background: var(--surface-alt);
     border-radius: var(--radius-xs);
     padding: 10px 14px;
-    font-family: 'SF Mono', 'Menlo', 'Consolas', 'D2Coding', monospace;
-    font-size: 11.5px;
-    line-height: 1.6;
+    font-family:
+      'Cascadia Mono', 'Cascadia Code', 'Consolas', 'D2Coding', 'SF Mono',
+      'Menlo', monospace;
+    font-size: 12px;
+    line-height: 1.65;
     color: var(--text);
   }
   .log-line {

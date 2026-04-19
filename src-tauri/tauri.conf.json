@@ -4,9 +4,15 @@
   "version": "1.0.0",
   "identifier": "com.n4yabi12.devil-connection-patcher",
   "build": {
-    "beforeDevCommand": "pnpm --dir ../frontend dev",
+    "beforeDevCommand": {
+      "cwd": "../frontend",
+      "script": "pnpm dev"
+    },
     "devUrl": "http://localhost:5173",
-    "beforeBuildCommand": "pnpm --dir ../frontend build",
+    "beforeBuildCommand": {
+      "cwd": "../frontend",
+      "script": "pnpm build"
+    },
     "frontendDist": "../frontend/dist"
   },
   "app": {
