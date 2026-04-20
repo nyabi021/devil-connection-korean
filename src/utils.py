@@ -1,6 +1,5 @@
 import platform
 
-
 def get_system_font() -> str:
     system = platform.system()
     if system == "Darwin":
@@ -8,7 +7,6 @@ def get_system_font() -> str:
     elif system == "Windows":
         return "Malgun Gothic"
     return "Noto Sans CJK KR"
-
 
 def get_monospace_font() -> str:
     system = platform.system()

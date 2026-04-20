@@ -3,8 +3,8 @@ import platform
 from collections.abc import Callable
 from pathlib import Path
 
-from PyQt6.QtCore import Qt, QThread, QUrl, pyqtSignal
-from PyQt6.QtGui import QDesktopServices, QFont
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
+from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import (
     QFileDialog,
     QFrame,
@@ -22,16 +22,12 @@ from PyQt6.QtWidgets import (
 
 from config import (
     APP_TITLE,
-    APP_VERSION,
     BASE_PATH,
     CREDITS,
-    RELEASE_API_URL,
-    RELEASES_URL,
     WINDOW_HEIGHT,
     WINDOW_WIDTH,
 )
 from installer import InstallWorker, find_app_asar
-from updater import ReleaseInfo, fetch_latest_release, is_newer_version
 from utils import get_monospace_font, get_system_font
 
 
@@ -46,9 +42,10 @@ class _AutoDetectWorker(QThread):
 
         if system == "Windows":
             import ctypes
-
             bitmask = ctypes.windll.kernel32.GetLogicalDrives()
-            available = [chr(65 + i) for i in range(26) if bitmask & (1 << i)]
+            available = [
+                chr(65 + i) for i in range(26) if bitmask & (1 << i)
+            ]
             roots = [Path("C:/Program Files (x86)/Steam"), Path("C:/Program Files/Steam")]
             for drive in available:
                 if drive == "C":
@@ -75,21 +72,10 @@ class _AutoDetectWorker(QThread):
         self.found_signal.emit(next((p for p in candidates if p.exists()), None))
 
 
-class _UpdateCheckWorker(QThread):
-    finished_signal = pyqtSignal(object, object)  # ReleaseInfo | None, Exception | None
-
-    def run(self):
-        try:
-            self.finished_signal.emit(fetch_latest_release(RELEASE_API_URL), None)
-        except Exception as e:
-            self.finished_signal.emit(None, e)
-
-
 class KoreanPatchInstaller(QMainWindow):
     def __init__(self):
         super().__init__()
         self.worker: InstallWorker | None = None
-        self._update_worker: _UpdateCheckWorker | None = None
         self._init_ui()
 
     def _init_ui(self):
@@ -124,7 +110,7 @@ class KoreanPatchInstaller(QMainWindow):
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title)
 
-        subtitle = QLabel(f"한글패치 프로그램 v{APP_VERSION}")
+        subtitle = QLabel("한글패치 프로그램")
         subtitle.setFont(QFont(get_system_font(), 11))
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         subtitle.setStyleSheet("color: #718096;")
@@ -159,14 +145,12 @@ class KoreanPatchInstaller(QMainWindow):
 
         self.auto_btn = self._button("자동 감지", self._auto_detect)
         self.browse_btn = self._button("찾아보기", self._browse)
-        self.update_btn = self._button("업데이트 확인", self._check_update)
         self.install_btn = self._button("설치 시작", self._start_installation)
         self.install_btn.setObjectName("install_btn")
         self.install_btn.setFont(QFont(get_system_font(), 11, QFont.Weight.Bold))
 
         buttons.addWidget(self.auto_btn)
         buttons.addWidget(self.browse_btn)
-        buttons.addWidget(self.update_btn)
         buttons.addStretch()
         buttons.addWidget(self.install_btn)
 
@@ -232,8 +216,7 @@ class KoreanPatchInstaller(QMainWindow):
         return btn
 
     def _apply_styles(self):
-        self.setStyleSheet(
-            """
+        self.setStyleSheet("""
             QMainWindow { background-color: #f5f5f5; }
             QFrame {
                 background-color: white;
@@ -280,8 +263,7 @@ class KoreanPatchInstaller(QMainWindow):
                 border-radius: 4px;
             }
             QProgressBar::chunk { background-color: #48bb78; border-radius: 4px; }
-        """
-        )
+        """)
 
     def _set_path_valid(self, valid: bool | None):
         if valid is None:
@@ -337,59 +319,6 @@ class KoreanPatchInstaller(QMainWindow):
                 "게임 경로를 자동으로 찾지 못했습니다.\n\n'찾아보기' 버튼을 눌러 직접 선택해주세요.",
             )
 
-    def _check_update(self):
-        if self._update_worker and self._update_worker.isRunning():
-            return
-
-        self._log("최신 릴리즈를 확인 중...", "info")
-        self.update_btn.setEnabled(False)
-        self._update_worker = _UpdateCheckWorker()
-        self._update_worker.finished_signal.connect(self._on_update_check_finished)
-        self._update_worker.start()
-
-    def _on_update_check_finished(
-        self, release: ReleaseInfo | None, error: Exception | None
-    ):
-        installing = self.worker is not None and self.worker.isRunning()
-        self.update_btn.setEnabled(not installing)
-
-        if error:
-            self._log(f"업데이트 확인 실패: {error}", "warning")
-            reply = QMessageBox.question(
-                self,
-                "업데이트 확인 실패",
-                "최신 릴리즈 정보를 가져오지 못했습니다.\n\n"
-                "GitHub Releases 페이지를 여시겠습니까?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            )
-            if reply == QMessageBox.StandardButton.Yes:
-                QDesktopServices.openUrl(QUrl(RELEASES_URL))
-            return
-
-        if release is None:
-            return
-
-        if is_newer_version(release.version, APP_VERSION):
-            self._log(f"새 버전 발견: {release.version}", "success")
-            reply = QMessageBox.question(
-                self,
-                "새 버전 발견",
-                f"새 버전이 있습니다.\n\n"
-                f"현재 버전: v{APP_VERSION}\n"
-                f"최신 버전: {release.version}\n\n"
-                "다운로드 페이지를 여시겠습니까?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            )
-            if reply == QMessageBox.StandardButton.Yes:
-                QDesktopServices.openUrl(QUrl(release.url))
-        else:
-            self._log("현재 최신 버전을 사용 중입니다.", "success")
-            QMessageBox.information(
-                self,
-                "업데이트 확인",
-                f"현재 최신 버전을 사용 중입니다.\n\n현재 버전: v{APP_VERSION}",
-            )
-
     def _start_installation(self):
         game_path = self.path_input.text().strip()
         if not game_path:
@@ -406,7 +335,7 @@ class KoreanPatchInstaller(QMainWindow):
             )
             return
 
-        for btn in (self.install_btn, self.auto_btn, self.browse_btn, self.update_btn):
+        for btn in (self.install_btn, self.auto_btn, self.browse_btn):
             btn.setEnabled(False)
         self.progress_bar.setValue(0)
         self.progress_card.setVisible(True)
@@ -418,7 +347,7 @@ class KoreanPatchInstaller(QMainWindow):
         self.worker.start()
 
     def _on_install_finished(self, success: bool, message: str):
-        for btn in (self.install_btn, self.auto_btn, self.browse_btn, self.update_btn):
+        for btn in (self.install_btn, self.auto_btn, self.browse_btn):
             btn.setEnabled(True)
         self.progress_card.setVisible(False)
 

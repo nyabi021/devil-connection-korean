@@ -1,7 +1,6 @@
 import platform
 import shutil
 from pathlib import Path
-
 from PyQt6.QtCore import QThread, pyqtSignal
 
 from config import PATCH_DIRS
@@ -75,7 +74,6 @@ class InstallWorker(QThread):
 
             self.log_signal.emit("4단계: app.asar 압축 해제 중... (시간이 걸릴 수 있습니다)", "info")
             from asar import extract_archive
-
             extract_archive(asar_path, app_folder)
             self.log_signal.emit("압축 해제 완료", "success")
             self.progress_signal.emit(40)
@@ -101,7 +99,6 @@ class InstallWorker(QThread):
                 self.log_signal.emit("원본 app.asar 파일을 삭제했습니다.", "info")
 
             from asar import create_archive
-
             create_archive(app_folder, asar_path, unpack="*.node")
             self.log_signal.emit("app.asar 재압축 완료", "success")
             self.progress_signal.emit(90)

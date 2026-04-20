@@ -1,12 +1,9 @@
 {
     "app": {
         "title": "でびるコネクショん 한글패치",
-        "version": "2.0.1",
         "window_width": 800,
         "window_height": 840,
-        "credits": "메인 시나리오 번역 검수: Ewan | 이미지 번역: 토니, 체퓨 | 영상 번역: 민버드",
-        "release_api_url": "https://api.github.com/repos/n4yabi12/devil-connection-korean/releases/latest",
-        "releases_url": "https://github.com/n4yabi12/devil-connection-korean/releases"
+        "credits": "메인 시나리오 번역 검수: Ewan | 이미지 번역: 토니, 체퓨 | 영상 번역: 민버드"
     },
     "patch": {
         "dirs": [
