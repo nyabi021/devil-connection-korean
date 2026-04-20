@@ -5,20 +5,6 @@
 Thumbs.db
 desktop.ini
 
-# Rust
-/target
-/src-tauri/target
-/src-tauri/gen
-Cargo.lock.user
-
-# Frontend
-/frontend/node_modules
-/frontend/dist
-/frontend/.svelte-kit
-
-# Claude
-/.claude
-
 # Build output
 /dist
 /build
