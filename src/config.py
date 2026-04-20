@@ -18,9 +18,12 @@ def load() -> dict:
 _cfg = load()
 
 APP_TITLE: str = _cfg["app"]["title"]
+APP_VERSION: str = _cfg["app"]["version"]
 WINDOW_WIDTH: int = _cfg["app"]["window_width"]
 WINDOW_HEIGHT: int = _cfg["app"]["window_height"]
 CREDITS: str = _cfg["app"]["credits"]
+RELEASE_API_URL: str = _cfg["app"]["release_api_url"]
+RELEASES_URL: str = _cfg["app"]["releases_url"]
 
 PATCH_DIRS: list[str] = _cfg["patch"]["dirs"]
 
