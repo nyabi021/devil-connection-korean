@@ -6,6 +6,39 @@ from PyQt6.QtCore import QThread, pyqtSignal
 from config import PATCH_DIRS
 
 
+def _patch_asar_integrity():
+    from asar.asar import AsarArchive
+    from asar.limited_reader import LimitedReader
+    from asar.metadata import Type
+
+    def _parse_metadata(self, info, path_in):
+        for name, child in info["files"].items():
+            cur_path = path_in / name
+            node = self._search_node_from_path(cur_path)
+            if "files" in child:
+                node.set_dir("unpacked" in child and bool(child["unpacked"]))
+                self._parse_metadata(child, cur_path)
+            elif "link" in child:
+                node.set_link(Path(child["link"]))
+            else:
+                node.unpacked = "unpacked" in child and bool(child["unpacked"])
+                node.type = Type.FILE
+                node.integrity = child.get("integrity")
+                node.size = child["size"]
+                if node.unpacked:
+                    node.file_path = self.asar_unpacked / node.path
+                else:
+                    node.offset = int(child["offset"])
+                    node.file_reader = LimitedReader(
+                        self._asar_io, self._offset + node.offset, node.size
+                    )
+
+    AsarArchive._parse_metadata = _parse_metadata
+
+
+_patch_asar_integrity()
+
+
 class InstallCancelledError(Exception):
     pass
 
