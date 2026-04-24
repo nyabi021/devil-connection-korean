@@ -1,5 +1,20 @@
-# macOS
-.DS_Store
+# Rust
+/target
+Cargo.lock.bak
+**/*.rs.bk
 
 # Windows
 desktop.ini
+Thumbs.db
+
+# Editor / IDE
+.idea/
+.vscode/
+
+# Bundled patch assets — large and not tracked in git.
+# Keep the folder itself so `include_dir!` succeeds on a fresh clone.
+/patches/*
+!/patches/.keep
+
+# Claude Code
+/.claude

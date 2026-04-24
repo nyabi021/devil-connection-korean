@@ -19,14 +19,9 @@
 
 ## 설치 방법
 
-1. GitLab 페이지의 **[Releases](https://gitlab.com/n4yabi12/devil-connection-korean/-/releases)** 페이지로 이동합니다.
-2. 최신 릴리즈에서 본인의 운영체제에 맞는 패치 프로그램을 다운로드합니다.
-   - Windows: `DevilConnection-Patcher-Windows-x64.exe`
-   - macOS: `DevilConnection-Patcher-macOS-arm64.zip`
-   - Linux: `DevilConnection-Patcher-Linux-x86_64.AppImage`
+1. GitHub 페이지의 **[Releases](https://github.com/nyabi021/devil-connection-korean/releases)** 페이지로 이동합니다.
+2. 최신 릴리즈에서 `DevilConnection-Patcher.exe` 를 다운로드합니다.
 3. 다운로드한 프로그램을 실행하고 안내에 따라 진행합니다.
-   - macOS: 압축 해제 후 실행하세요.
-   - Linux: AppImage 파일에 실행 권한을 부여해야 합니다: `chmod +x DevilConnection-Patcher-Linux-x86_64.AppImage`
 
 ---
 
@@ -34,10 +29,9 @@
 - 게임 업데이트 시 수정 사항이 초기화될 수 있습니다.
 - 원본 파일은 반드시 백업해두세요.
 - 본 번역 패치 사용으로 인한 게임 오류나 문제는 책임지지 않습니다.
-- macOS에서 게임 실행 시 보안 경고가 나타날 수 있습니다. 시스템 설정 > 개인정보 보호 및 보안에서 허용해주세요.
 
 ## 번역 기여 안내
-- 오역, 의역, 번역 누락 등 문제가 되는 번역을 발견하시면 GitLab 이슈로 제보해주시거나, 아래 커뮤니티 또는 디스코드를 통해 연락해주시면 감사하겠습니다.
+- 오역, 의역, 번역 누락 등 문제가 되는 번역을 발견하시면 GitHub 이슈로 제보해주시거나, 아래 커뮤니티 또는 디스코드를 통해 연락해주시면 감사하겠습니다.
 - **문의 및 제보 채널**: 
   - [데빌 커넥션 마이너 갤러리](https://gall.dcinside.com/mgallery/board/lists?id=debikone)
   - **Discord**: `@n4yabi12`
@@ -59,6 +53,9 @@
 ### 번역 콘텐츠
 번역 콘텐츠(번역 텍스트, 이미지, 영상 등)는 ChaoGames의 허가 하에 배포됩니다.
 게임 원본의 저작권은 해당 권리자에게 있으며, 번역 콘텐츠는 비상업적 목적으로만 사용 가능합니다.
+
+### Pretendard 서체 사용 안내
+본 프로젝트의 패처 UI 는 Pretendard 서체를 사용합니다. Pretendard 는 [SIL Open Font License 1.1](https://scripts.sil.org/OFL) 로 배포됩니다.
 
 ### 메이플스토리 서체 사용 안내
 본 프로젝트는 ㈜넥슨코리아의 메이플스토리 서체를 사용합니다.
