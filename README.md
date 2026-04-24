@@ -2,7 +2,7 @@
 ![Release](https://img.shields.io/github/v/release/nyabi021/devil-connection-korean?style=flat&color=6366f1)
 ![Downloads](https://img.shields.io/github/downloads/nyabi021/devil-connection-korean/total?style=flat&color=10b981)
 ![Last Commit](https://img.shields.io/github/last-commit/nyabi021/devil-connection-korean?style=flat&color=f59e0b)
-![License](https://img.shields.io/badge/patcher%20code-MIT-8b5cf6?style=flat)
+![License](https://img.shields.io/badge/patcher%20code-Apache--2.0-8b5cf6?style=flat)
 > **번역 안내**
 > - 본 번역 패치는 **ChaoGames로부터 배포 허가**를 받았습니다.
 > - 본 번역은 **Claude AI**를 초벌 번역 작업에 활용했습니다.
@@ -48,7 +48,7 @@
 ## 라이선스
 
 ### 패처 프로그램 소스코드
-패처 프로그램의 소스코드는 MIT 라이선스로 제공됩니다.
+패처 프로그램의 소스코드는 Apache License 2.0으로 제공됩니다.
 
 ### 번역 콘텐츠
 번역 콘텐츠(번역 텍스트, 이미지, 영상 등)는 ChaoGames의 허가 하에 배포됩니다.
