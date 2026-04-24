@@ -1,8 +1,5 @@
 # Devil Connection Korean (비공식 한글 번역)
-![Release](https://img.shields.io/github/v/release/n4yabi12/devil-connection-korean?style=flat&color=6366f1)
-![Downloads](https://img.shields.io/github/downloads/n4yabi12/devil-connection-korean/total?style=flat&color=10b981)
-![Last Commit](https://img.shields.io/github/last-commit/n4yabi12/devil-connection-korean?style=flat&color=f59e0b)
-![License](https://img.shields.io/badge/patcher%20code-MIT-8b5cf6?style=flat)
+
 > **번역 안내**
 > - 본 번역 패치는 **ChaoGames로부터 배포 허가**를 받았습니다.
 > - 본 번역은 **Claude AI**를 초벌 번역 작업에 활용했습니다.
@@ -19,7 +16,7 @@
 
 ## 설치 방법
 
-1. GitHub 페이지 상단의 **[Releases](../../releases)** 탭으로 이동합니다.
+1. GitLab 페이지의 **[Releases](https://gitlab.com/n4yabi12/devil-connection-korean/-/releases)** 페이지로 이동합니다.
 2. 최신 릴리즈에서 본인의 운영체제에 맞는 패치 프로그램을 다운로드합니다.
    - Windows: `DevilConnection-Patcher-Windows-x64.exe`
    - macOS: `DevilConnection-Patcher-macOS-arm64.zip`
@@ -37,7 +34,7 @@
 - macOS에서 게임 실행 시 보안 경고가 나타날 수 있습니다. 시스템 설정 > 개인정보 보호 및 보안에서 허용해주세요.
 
 ## 번역 기여 안내
-- 오역, 의역, 번역 누락 등 문제가 되는 번역을 발견하시면 GitHub 이슈로 제보해주시거나, 아래 커뮤니티 또는 디스코드를 통해 연락해주시면 감사하겠습니다.
+- 오역, 의역, 번역 누락 등 문제가 되는 번역을 발견하시면 GitLab 이슈로 제보해주시거나, 아래 커뮤니티 또는 디스코드를 통해 연락해주시면 감사하겠습니다.
 - **문의 및 제보 채널**: 
   - [데빌 커넥션 마이너 갤러리](https://gall.dcinside.com/mgallery/board/lists?id=debikone)
   - **Discord**: `@n4yabi12`
